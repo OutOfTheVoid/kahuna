@@ -10,19 +10,6 @@ enum PossibleStates {
 	A,
 	B,
 }
-/*
-impl Display for PossibleStates {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}",
-			match *self {
-				PossibleStates::AB => "_",
-				PossibleStates::A => "A",
-				PossibleStates::B => "B",
-			}
-		)
-    }
-}
-*/
 
 impl State for PossibleStates {
     fn entropy(&self) -> u32 {
