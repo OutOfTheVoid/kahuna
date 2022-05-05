@@ -1,0 +1,19 @@
+[package]
+name = "kahuna"
+version = "0.1.0"
+authors = ["Liam Taylor <liam.tab@gail.com>"]
+description = "A basic implementation of wave-function collapse for procedural generation"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+edition = "2021"
+keywords = ["gamedev", "procgen", "wave", "function", "collapse"]
+categories = ["algorithms", "mathematics", "game-development"]
+exclude = [
+    "Cargo.lock",
+    "target",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
