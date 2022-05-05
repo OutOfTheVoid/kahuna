@@ -1,7 +1,7 @@
-kahuna
+Kahuna
 ======
 
-This crate is a basic extensible implementation of [Wave Function Collapse]: https://www.youtube.com/watch?v=2SuvO4Gi7uY
+This crate is a basic extensible implementation of [Wave Function Collapse](https://www.youtube.com/watch?v=2SuvO4Gi7uY)
 
 ## Features
 
