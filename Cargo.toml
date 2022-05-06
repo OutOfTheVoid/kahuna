@@ -1,6 +1,6 @@
 [package]
 name = "kahuna"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Liam Taylor <liam.tab@gail.com>"]
 description = "A basic implementation of wave-function collapse for procedural generation"
 repository = "https://github.com/OutOfTheVoid/kahuna"

@@ -2,14 +2,23 @@ use std::ops::{IndexMut, Index};
 
 use crate::Space;
 
+/// Basic square grid implementing [crate::Space]
+/// 
+/// coordinates and coordinate directions are specified as `(isize, isize)`.
 pub struct SquareGrid<T> {
 	cells: Box<[T]>,
-	width: usize,
-	height: usize,
+	width: isize,
+	height: isize,
 }
 
 impl<T> SquareGrid<T> {
-	pub fn new(width: usize, height: usize, init_fn: impl Fn(usize, usize) -> T) -> Self {
+	/// Create a new SquareGrid
+	/// 
+	/// * `width` - width of the grid
+	/// * `height` - height of the grid
+	/// * `init_fn` - callback to set the initial state of each cell based on
+	/// coordinate
+	pub fn new(width: isize, height: isize, init_fn: impl Fn(isize, isize) -> T) -> Self {
 		let mut cells = Vec::new();
 		for y in 0..height {
 			for x in 0..width {
@@ -22,42 +31,27 @@ impl<T> SquareGrid<T> {
 			height,
 		}
 	}
-	/*
-	Neighbor directions:
-
-	0  1  2
-	3  *  4
-	5  6  7
-	*/
-	pub const NEIGHBOR_UP_LEFT: usize = 0;
-	pub const NEIGHBOR_UP: usize = 1;
-	pub const NEIGHBOR_UP_RIGHT: usize = 2;
-	pub const NEIGHBOR_LEFT: usize = 3;
-	pub const NEIGHBOR_RIGHT: usize = 4;
-	pub const NEIGHBOR_DOWN_LEFT: usize = 5;
-	pub const NEIGHBOR_DOWN: usize = 6;
-	pub const NEIGHBOR_DOWN_RIGHT: usize = 7;
 }
 
-impl<T> Index<<SquareGrid<T> as Space<T>>::Coordinate> for SquareGrid<T> {
+impl<T: 'static> Index<<SquareGrid<T> as Space<T>>::Coordinate> for SquareGrid<T> {
     type Output = T;
 
     fn index(&self, index: <SquareGrid<T> as Space<T>>::Coordinate) -> &Self::Output {
 		let (x, y) = index;
-        &self.cells[x + y * self.width]
+        &self.cells[(x + y * self.width) as usize]
     }
 }
 
-impl<T> IndexMut<<SquareGrid<T> as Space<T>>::Coordinate> for SquareGrid<T> {
+impl<T: 'static> IndexMut<<SquareGrid<T> as Space<T>>::Coordinate> for SquareGrid<T> {
 	fn index_mut(&mut self, index: <SquareGrid<T> as Space<T>>::Coordinate) -> &mut Self::Output {
 		let (x, y) = index;
-        &mut self.cells[x + y * self.width]
+        &mut self.cells[(x + y * self.width) as usize]
     }
 }
 
-impl<T> Space<T> for SquareGrid<T> {
-    type Coordinate = (usize, usize);
-	const NEIGHBOR_DIRECTIONS: usize = 8;
+impl<T: 'static> Space<T> for SquareGrid<T> {
+    type Coordinate = (isize, isize);
+	type CoordinateDelta = (isize, isize);
 
     fn coordinate_list(&self) -> Box<[Self::Coordinate]> {
         let mut coords = Vec::new();
@@ -69,30 +63,18 @@ impl<T> Space<T> for SquareGrid<T> {
 		coords.into_boxed_slice()
     }
 
-    fn get_neighbors(&self, coord: Self::Coordinate, neighbors: &mut [Option<Self::Coordinate>]) {
-        let (x, y) = coord;
+    fn neighbors(&self, coord: Self::Coordinate, neighbor_directions: &[Self::CoordinateDelta], neighbors: &mut [Option<Self::Coordinate>]) {
+		assert!(neighbor_directions.len() <= neighbors.len());
 		
-		let left_edge = x == 0;
-		let right_edge = x + 1 == self.width;
-		let top_edge = y == 0;
-		let bottom_edge = y + 1 == self.height;
-		
-		/*
-		Neighbor directions:
-
-		0  1  2
-		3  *  4
-		5  6  7
-		*/
-		
-		neighbors[0] = if !left_edge & !top_edge     { Some((x - 1, y - 1)) } else { None };
-		neighbors[1] = if !top_edge                  { Some((x,     y - 1)) } else { None };
-		neighbors[2] = if !right_edge & !top_edge    { Some((x + 1, y - 1)) } else { None };
-		neighbors[3] = if !left_edge                 { Some((x - 1, y    )) } else { None };
-		neighbors[4] = if !right_edge                { Some((x + 1, y    )) } else { None };
-		neighbors[5] = if !left_edge & !bottom_edge  { Some((x - 1, y + 1)) } else { None };
-		neighbors[6] = if !bottom_edge               { Some((x,     y + 1)) } else { None };
-		neighbors[7] = if !right_edge & !bottom_edge { Some((x + 1, y + 1)) } else { None };
-		
+		let (x, y) = coord;
+		for i in 0..neighbor_directions.len() {
+			let (dx, dy) = neighbor_directions[i];
+			let (nx, ny) = (x + dx, y + dy);
+			if nx.clamp(0, self.width - 1) == nx && ny.clamp(0, self.height - 1) == ny {
+				neighbors[i] = Some((nx, ny));
+			} else {
+				neighbors[i] = None;
+			}
+		}
     }
 }

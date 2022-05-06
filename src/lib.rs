@@ -1,3 +1,11 @@
+//! Wave Function Collapse
+//! 
+//! Provides an implementation of the wave function collapse algorithm.
+//!
+//! Wave function collapse works by iteratively "collapsing" a collecion of
+//! cells (such as a square grid) from all possible states to only the states
+//! possible with a given ruleset, selecting randomly where ambiguous.
+
 mod space;
 mod state;
 mod collapse_rule;
@@ -34,21 +42,29 @@ fn find_next_to_collapse<St: State, Sp: Space<St>>(unresoved_set: &mut HashSet<S
 	}
 }
 
-pub fn collapse<St: State, Sp: Space<St>, Rule: CollapseRule<St>>(space: &mut Sp, rule: &Rule) {
+/// Perform the wave function collapse algorithm on a given state-space with
+/// the provided collapse rule.
+/// 
+/// Since rules are defined on state and space, you can usually call
+/// `collapse::<Rule, _, _>(..)`
+pub fn collapse<Rule: CollapseRule<St, Sp>, St: State, Sp: Space<St>>(space: &mut Sp) {
 	let mut unresolved_set = HashSet::new();
 	let mut resolved_set = HashSet::new();
 	let mut lowest_entropy_set = Vec::new();
 	for coord in &space.coordinate_list()[..] {
 		unresolved_set.insert(*coord);
 	}
-	let mut neighbors = vec![None; Sp::NEIGHBOR_DIRECTIONS].into_boxed_slice();
-	let mut neighbor_states = vec![Option::<St>::None; Sp::NEIGHBOR_DIRECTIONS].into_boxed_slice();
+	let mut neighbors = vec![None; Rule::NEIGHBOR_DIRECTIONS.len()].into_boxed_slice();
+	let mut neighbor_states = vec![Option::<St>::None; Rule::NEIGHBOR_DIRECTIONS.len()].into_boxed_slice();
 	let mut to_propogate = BTreeSet::new();
 	while let Some(to_collapse) = find_next_to_collapse(&mut unresolved_set, &mut lowest_entropy_set, &mut resolved_set, space) {
 		to_propogate.clear();
-		space[to_collapse].pick_from_possible();
-		space.get_neighbors(to_collapse, &mut neighbors);
-		for i in 0..Sp::NEIGHBOR_DIRECTIONS {
+		space.neighbors(to_collapse, Rule::NEIGHBOR_DIRECTIONS, &mut neighbors);
+		for i in 0 .. Rule::NEIGHBOR_DIRECTIONS.len() {
+			neighbor_states[i] = neighbors[i].map(|coord| space[coord].clone());
+		}
+		Rule::observe(&mut space[to_collapse], &neighbor_states[..]);
+		for i in 0..Rule::NEIGHBOR_DIRECTIONS.len() {
 			if let Some(neighbor_coord) = neighbors[i] {
 				to_propogate.insert(neighbor_coord);
 			}
@@ -58,15 +74,15 @@ pub fn collapse<St: State, Sp: Space<St>, Rule: CollapseRule<St>>(space: &mut Sp
 			let entropy_before = space[propogating].entropy();
 			
 			if entropy_before != 0 {
-				space.get_neighbors(propogating, &mut neighbors);
-				for i in 0 .. Sp::NEIGHBOR_DIRECTIONS {
+				space.neighbors(propogating, Rule::NEIGHBOR_DIRECTIONS, &mut neighbors);
+				for i in 0 .. Rule::NEIGHBOR_DIRECTIONS.len() {
 					neighbor_states[i] = neighbors[i].map(|coord| space[coord].clone());
 				}
-				rule(&mut space[propogating], &neighbor_states[..]);
+				Rule::collapse(&mut space[propogating], &neighbor_states[..]);
 				let entropy_after = space[propogating].entropy();
 				
 				if entropy_after < entropy_before {
-					for i in 0 .. Sp::NEIGHBOR_DIRECTIONS {
+					for i in 0 .. Rule::NEIGHBOR_DIRECTIONS.len() {
 						if let Some(neighbor) = neighbors[i] {
 							if space[neighbor].entropy() != 0 {
 								to_propogate.insert(neighbor);
