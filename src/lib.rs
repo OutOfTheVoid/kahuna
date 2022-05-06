@@ -10,6 +10,7 @@ mod space;
 mod state;
 mod collapse_rule;
 pub mod square_grid;
+pub mod bit_state;
 
 use std::{collections::{BTreeSet, HashSet}};
 
