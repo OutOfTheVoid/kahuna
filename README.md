@@ -1,6 +1,8 @@
 Kahuna
 ======
 
+[![Crates.io](https://img.shields.io/crates/v/kahuna.svg?label=Kahuna)](https://crates.io/crates/kahuna) [![docs.rs](https://docs.rs/kahuna/badge.svg)](https://docs.rs/kahuna/)
+
 This crate is a basic extensible implementation of [Wave Function Collapse](https://www.youtube.com/watch?v=2SuvO4Gi7uY)
 
 ## Features
