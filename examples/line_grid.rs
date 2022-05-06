@@ -81,33 +81,33 @@ const RULES: &'static [StateRule] = &[
 	StateRule {
 		state: ST_CORNER,
 		allowed_neighbors: [
-							   ST_NONE | ST_VBAR,
+			                   ST_NONE | ST_VBAR,
 			ST_NONE | ST_HBAR,                    ST_NONE | ST_HBAR,
-							   ST_NONE | ST_VBAR,
+			                   ST_NONE | ST_VBAR,
 		]
 	},
 	StateRule {
 		state: ST_HBAR,
 		allowed_neighbors: [
-								 ST_NONE,
+			                     ST_NONE,
 			ST_HBAR | ST_CORNER,          ST_HBAR | ST_CORNER,
-								 ST_NONE,
+			                     ST_NONE,
 		]
 	},
 	StateRule {
 		state: ST_VBAR,
 		allowed_neighbors: [
-					 ST_VBAR | ST_CORNER,
+			         ST_VBAR | ST_CORNER,
 			ST_NONE,                      ST_NONE,
-					 ST_VBAR | ST_CORNER,
+			         ST_VBAR | ST_CORNER,
 		]
 	},
 	StateRule {
 		state: ST_NONE,
 		allowed_neighbors: [
-					 !ST_VBAR,
-			!ST_HBAR,         !ST_HBAR,
-					 !ST_VBAR,
+			          !ST_VBAR,
+			!ST_HBAR,           !ST_HBAR,
+			          !ST_VBAR,
 		]
 	}
 ];
