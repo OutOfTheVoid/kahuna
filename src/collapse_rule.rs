@@ -10,7 +10,7 @@ use crate::{State, Space};
 /// solution.
 pub trait CollapseRule<S: State, Sp: 'static + Space<S>> {
 	/// Neighbor directions are specified as a list of coordinate deltas.
-	const NEIGHBOR_DIRECTIONS: &'static [Sp::CoordinateDelta];
+	fn neighbor_offsets(&self) -> Box<[Sp::CoordinateDelta]>;
 	/// The collapse rule, which modifies the possible states of 'cell' based
 	/// on the states of neighboring cells.
 	/// 
@@ -18,10 +18,10 @@ pub trait CollapseRule<S: State, Sp: 'static + Space<S>> {
 	/// * `neighbors` - The states of neighbors in the order specified by
 	/// `NEIGHBOR_DIRECTIONS`. `Some(<state>)` if the cell exists, and `None`
 	/// otherwise.
-	fn collapse(cell: &mut S, neighbors: &[Option<S>]);
+	fn collapse(&self, cell: &mut S, neighbors: &[Option<S>]);
 	/// The observe rule, which forces a cell into a zero-entropy state.
 	/// 
 	/// * `cell` - The cell to observe
 	/// * `neighbors` - The states of neighbor cells as in `collapse()` above.
-	fn observe(cell: &mut S, neighbors: &[Option<S>]);
+	fn observe(&self, cell: &mut S, neighbors: &[Option<S>]);
 }

@@ -1,5 +1,13 @@
 use std::{ops::IndexMut, hash::Hash};
 
+/// Represents coordinate deltas which have an inverse - the delta which undoes
+/// the change represented by this delta.
+/// 
+/// On a 2d grid, the inverse of `(2, -1)` would be `(-2, 1)`
+pub trait InvertDelta {
+	fn invert_delta(&self) -> Self;
+}
+
 /// Defines the space or "world" to run WFC on.
 /// 
 /// This is the primary data structure behind WFC, and is modified in-place by

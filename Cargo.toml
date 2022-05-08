@@ -1,6 +1,6 @@
 [package]
 name = "kahuna"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Liam Taylor <liam.tab@gail.com>"]
 description = "A basic implementation of wave-function collapse for procedural generation"
 repository = "https://github.com/OutOfTheVoid/kahuna"
@@ -13,9 +13,14 @@ categories = ["algorithms", "mathematics", "game-development"]
 exclude = [
     "Cargo.lock",
     "target",
+    "procedural_texture.png",
+    ".vscode"
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rand = "0.8.5"
+
+[dev-dependencies]
+image = "0.24.2"
