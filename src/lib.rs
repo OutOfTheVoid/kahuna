@@ -51,9 +51,6 @@ fn find_next_to_collapse<St: State, Sp: Space<St>>(unresoved_set: &mut HashSet<S
 
 /// Perform the wave function collapse algorithm on a given state-space with
 /// the provided collapse rule.
-/// 
-/// Since rules are defined on state and space, you can usually call
-/// `collapse::<Rule, _, _>(..)`
 pub fn collapse<Rule: CollapseRule<St, Sp>, St: State, Sp: Space<St>>(space: &mut Sp, rule: &Rule) {
 	let mut unresolved_set = HashSet::new();
 	let mut resolved_set = HashSet::new();
