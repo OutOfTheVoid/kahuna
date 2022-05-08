@@ -20,15 +20,17 @@ impl State for PossibleStates {
 
 type TestGrid = SquareGrid<PossibleStates>;
 
-struct Rule();
+struct Rule;
 
 impl CollapseRule<PossibleStates, TestGrid> for Rule {
-	const NEIGHBOR_DIRECTIONS: &'static [(isize, isize)] = &[
-		(-1, 0),
-		(1, 0)
-	];
+	fn neighbor_offsets(&self) -> Box<[<TestGrid as Space<PossibleStates>>::CoordinateDelta]> {
+		vec![
+			(-1, 0),
+			(1, 0)
+		].into_boxed_slice()
+	}
 	
-	fn collapse(cell: &mut PossibleStates, neighbors: &[Option<PossibleStates>]) {
+	fn collapse(&self, cell: &mut PossibleStates, neighbors: &[Option<PossibleStates>]) {
 		if *cell == PossibleStates::AB {
 			match (neighbors[0], neighbors[1]) {
 				(Some(PossibleStates::A), _) => *cell = PossibleStates::B,
@@ -40,7 +42,7 @@ impl CollapseRule<PossibleStates, TestGrid> for Rule {
 		}
 	}
 	
-	fn observe(cell: &mut PossibleStates, _neighbors: &[Option<PossibleStates>]) {
+	fn observe(&self, cell: &mut PossibleStates, _neighbors: &[Option<PossibleStates>]) {
 		if let PossibleStates::AB = *cell {
 			*cell = if thread_rng().gen::<bool>() { PossibleStates::A } else { PossibleStates::B };
 		}
@@ -50,7 +52,7 @@ impl CollapseRule<PossibleStates, TestGrid> for Rule {
 #[test]
 fn test_basic() {
 	let mut grid = SquareGrid::new(10, 10, |_, _| PossibleStates::AB);
-	collapse::<Rule, _, _>(&mut grid);
+	collapse(&mut grid, &Rule);
 	for y in 0..10 {
 		for x in 0..9 {
 			assert_ne!(grid[(x, y)], PossibleStates::AB);

@@ -1,6 +1,6 @@
 use std::ops::{IndexMut, Index};
 
-use crate::Space;
+use crate::{Space, InvertDelta};
 
 /// Basic square grid implementing [crate::Space]
 /// 
@@ -9,6 +9,13 @@ pub struct SquareGrid<T> {
 	cells: Box<[T]>,
 	width: isize,
 	height: isize,
+}
+
+impl InvertDelta for (isize, isize) {
+    fn invert_delta(&self) -> Self {
+        let (dx, dy) = *self;
+		(-dx, -dy)
+    }
 }
 
 impl<T> SquareGrid<T> {

@@ -7,16 +7,23 @@
 //! possible with a given ruleset, selecting randomly where ambiguous.
 
 mod space;
-mod state;
 mod collapse_rule;
+mod state;
+mod set_state;
+mod all_state;
 pub mod square_grid;
+pub mod bitset_state;
+pub mod hashset_state;
+pub mod set_rule;
 
-use std::{collections::{BTreeSet, HashSet}};
+use std::{collections::{HashSet, VecDeque}};
 
 use rand::{thread_rng, Rng};
 pub use space::*;
 pub use state::*;
 pub use collapse_rule::*;
+pub use set_state::*;
+pub use all_state::*;
 
 fn find_next_to_collapse<St: State, Sp: Space<St>>(unresoved_set: &mut HashSet<Sp::Coordinate>, lowest_entropy_set: &mut Vec<Sp::Coordinate>, resolved_set: &mut HashSet<Sp::Coordinate>, space: &Sp) -> Option<Sp::Coordinate> {
 	let mut lowest_entropy = std::u32::MAX;
@@ -47,46 +54,58 @@ fn find_next_to_collapse<St: State, Sp: Space<St>>(unresoved_set: &mut HashSet<S
 /// 
 /// Since rules are defined on state and space, you can usually call
 /// `collapse::<Rule, _, _>(..)`
-pub fn collapse<Rule: CollapseRule<St, Sp>, St: State, Sp: Space<St>>(space: &mut Sp) {
+pub fn collapse<Rule: CollapseRule<St, Sp>, St: State, Sp: Space<St>>(space: &mut Sp, rule: &Rule) {
 	let mut unresolved_set = HashSet::new();
 	let mut resolved_set = HashSet::new();
 	let mut lowest_entropy_set = Vec::new();
+	let neighbor_directions = rule.neighbor_offsets();
 	for coord in &space.coordinate_list()[..] {
-		unresolved_set.insert(*coord);
+		if space[*coord].entropy() > 0 {
+			unresolved_set.insert(*coord);
+		}
 	}
-	let mut neighbors = vec![None; Rule::NEIGHBOR_DIRECTIONS.len()].into_boxed_slice();
-	let mut neighbor_states = vec![Option::<St>::None; Rule::NEIGHBOR_DIRECTIONS.len()].into_boxed_slice();
-	let mut to_propogate = BTreeSet::new();
+	let mut neighbors = vec![None; neighbor_directions.len()].into_boxed_slice();
+	let mut neighbor_states = vec![Option::<St>::None; neighbor_directions.len()].into_boxed_slice();
+	let mut to_propogate = VecDeque::new();
+	
+	for coordinate in unresolved_set.iter() {
+		to_propogate.push_back(*coordinate);
+	}
+	run_propogation(space, rule, &mut to_propogate, &neighbor_directions, &mut neighbors, &mut neighbor_states);
+	
 	while let Some(to_collapse) = find_next_to_collapse(&mut unresolved_set, &mut lowest_entropy_set, &mut resolved_set, space) {
 		to_propogate.clear();
-		space.neighbors(to_collapse, Rule::NEIGHBOR_DIRECTIONS, &mut neighbors);
-		for i in 0 .. Rule::NEIGHBOR_DIRECTIONS.len() {
+		space.neighbors(to_collapse, &neighbor_directions, &mut neighbors);
+		for i in 0 .. neighbor_directions.len() {
 			neighbor_states[i] = neighbors[i].map(|coord| space[coord].clone());
 		}
-		Rule::observe(&mut space[to_collapse], &neighbor_states[..]);
-		for i in 0..Rule::NEIGHBOR_DIRECTIONS.len() {
+		rule.observe(&mut space[to_collapse], &neighbor_states[..]);
+		for i in 0..neighbor_directions.len() {
 			if let Some(neighbor_coord) = neighbors[i] {
-				to_propogate.insert(neighbor_coord);
+				to_propogate.push_back(neighbor_coord);
 			}
 		}
-		while let Some(&propogating) = to_propogate.iter().next() {
-			to_propogate.remove(&propogating);
-			let entropy_before = space[propogating].entropy();
+		run_propogation(space, rule, &mut to_propogate, &neighbor_directions, &mut neighbors, &mut neighbor_states);
+	}
+}
+
+fn run_propogation<Rule: CollapseRule<St, Sp>, St: State, Sp: Space<St>>(space: &mut Sp, rule: &Rule, to_propogate: &mut VecDeque<Sp::Coordinate>, neighbor_directions: &[Sp::CoordinateDelta], neighbors: &mut [Option<Sp::Coordinate>], neighbor_states: &mut [Option<St>]) {
+	while let Some(propogating) = to_propogate.pop_front() {
+		let entropy_before = space[propogating].entropy();
+		
+		if entropy_before != 0 {
+			space.neighbors(propogating, &neighbor_directions, neighbors);
+			for i in 0 .. neighbor_directions.len() {
+				neighbor_states[i] = neighbors[i].map(|coord| space[coord].clone());
+			}
+			rule.collapse(&mut space[propogating], &neighbor_states[..]);
+			let entropy_after = space[propogating].entropy();
 			
-			if entropy_before != 0 {
-				space.neighbors(propogating, Rule::NEIGHBOR_DIRECTIONS, &mut neighbors);
-				for i in 0 .. Rule::NEIGHBOR_DIRECTIONS.len() {
-					neighbor_states[i] = neighbors[i].map(|coord| space[coord].clone());
-				}
-				Rule::collapse(&mut space[propogating], &neighbor_states[..]);
-				let entropy_after = space[propogating].entropy();
-				
-				if entropy_after < entropy_before {
-					for i in 0 .. Rule::NEIGHBOR_DIRECTIONS.len() {
-						if let Some(neighbor) = neighbors[i] {
-							if space[neighbor].entropy() != 0 {
-								to_propogate.insert(neighbor);
-							}
+			if entropy_after < entropy_before {
+				for i in 0 .. neighbor_directions.len() {
+					if let Some(neighbor) = neighbors[i] {
+						if space[neighbor].entropy() != 0 {
+							to_propogate.push_back(neighbor);
 						}
 					}
 				}

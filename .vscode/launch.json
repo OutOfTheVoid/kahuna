@@ -1,0 +1,120 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'kahuna'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=kahuna"
+				],
+				"filter": {
+					"name": "kahuna",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug example 'helpers'",
+			"cargo": {
+				"args": [
+					"build",
+					"--example=helpers",
+					"--package=kahuna"
+				],
+				"filter": {
+					"name": "helpers",
+					"kind": "example"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in example 'helpers'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--example=helpers",
+					"--package=kahuna"
+				],
+				"filter": {
+					"name": "helpers",
+					"kind": "example"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug example 'line_grid'",
+			"cargo": {
+				"args": [
+					"build",
+					"--example=line_grid",
+					"--package=kahuna"
+				],
+				"filter": {
+					"name": "line_grid",
+					"kind": "example"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in example 'line_grid'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--example=line_grid",
+					"--package=kahuna"
+				],
+				"filter": {
+					"name": "line_grid",
+					"kind": "example"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'basic'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=basic",
+					"--package=kahuna"
+				],
+				"filter": {
+					"name": "basic",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		}
+	]
+}

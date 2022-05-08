@@ -34,22 +34,24 @@ impl State for States {
 
 type Grid = SquareGrid<States>;
 
-struct Rule();
+struct Rule;
 
 impl CollapseRule<States, Grid> for Rule {
-	const NEIGHBOR_DIRECTIONS: &'static [(isize, isize)] = &[
-		(0, -1),
-		(-1, 0),
-		(1, 0),
-		(0, 1)
-	];
+	fn neighbor_offsets(&self) -> Box<[<Grid as Space<States>>::CoordinateDelta]> {
+		vec![
+			(0, -1),
+			(-1, 0),
+			(1, 0),
+			(0, 1)
+		].into_boxed_slice()
+	}
 	
-	fn collapse(cell: &mut States, neighbors: &[Option<States>]) {
+	fn collapse(&self, cell: &mut States, neighbors: &[Option<States>]) {
 		let States(x) = cell;
 		
 		for rule in &RULES[..] {
 			if *x & rule.state != 0 {
-				for i in 0 .. Self::NEIGHBOR_DIRECTIONS.len() {
+				for i in 0 .. 4 {
 					if let Some(States(neighbor)) = neighbors[i] {
 						if neighbor & rule.allowed_neighbors[i] == 0 {
 							*x &= !rule.state;
@@ -60,7 +62,7 @@ impl CollapseRule<States, Grid> for Rule {
 		}
 	}
 	
-	fn observe(cell: &mut States, _neighbors: &[Option<States>]) {
+	fn observe(&self, cell: &mut States, _neighbors: &[Option<States>]) {
 		let States(x) = cell;
 		let mut bits = vec![];
 		for i in 0 .. 4 {
@@ -114,7 +116,7 @@ const RULES: &'static [StateRule] = &[
 
 fn main() {
 	let mut grid = Grid::new(40, 20, |_, _| States(ST_ALL));
-	collapse::<Rule, _, _>(&mut grid);
+	collapse(&mut grid, &Rule);
 	for y in 0..20 {
 		for x in 0..40 {
 			print!("{}", grid[(x, y)]);
