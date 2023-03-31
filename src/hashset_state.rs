@@ -7,7 +7,7 @@ use crate::{SetState, State};
 /// * `T` - The underlying unique state identifier
 #[derive(Clone, PartialEq)]
 pub struct HashsetState<T: Eq + Hash> {
-    hashset: HashSet<T>,
+    pub hashset: HashSet<T>,
 }
 
 #[allow(unused)]
